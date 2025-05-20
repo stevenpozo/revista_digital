@@ -1,29 +1,44 @@
-let currentPage = -1;
+// Configuración del libro
+let currentPage = 0;
 const pages = document.querySelectorAll('.page');
+const totalPages = pages.length;
 
-function updateBook() {
+// Asegurar que la primera página sea visible al cargar
+function initBook() {
   pages.forEach((page, index) => {
-    if (index <= currentPage) {
-      page.classList.add('flipped');
-    } else {
-      page.classList.remove('flipped');
-    }
-    page.style.zIndex = pages.length - index;
+    page.style.transform = index === 0 ? 'rotateY(0deg)' : 'rotateY(180deg)';
+    page.style.zIndex = totalPages - index;
+    page.style.backfaceVisibility = 'hidden';
   });
 }
 
-function nextPage() {
-  if (currentPage < pages.length - 1) {
+// Animación de página
+function flipPage(direction) {
+  // Deshabilitar botones durante la animación
+  document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+  
+  if (direction === 'next' && currentPage < totalPages - 1) {
+    pages[currentPage].style.transform = 'rotateY(-180deg)';
+    pages[currentPage + 1].style.transform = 'rotateY(0deg)';
     currentPage++;
-    updateBook();
-  }
-}
-
-function prevPage() {
-  if (currentPage >= 0) {
+  } else if (direction === 'prev' && currentPage > 0) {
+    pages[currentPage].style.transform = 'rotateY(180deg)';
     currentPage--;
-    updateBook();
+    pages[currentPage].style.transform = 'rotateY(0deg)';
   }
+  
+  // Actualizar z-index después de la animación
+  setTimeout(() => {
+    pages.forEach((page, index) => {
+      page.style.zIndex = totalPages - Math.abs(index - currentPage);
+    });
+    document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+  }, 1000);
 }
 
-updateBook(); // Inicializa el libro
+// Event listeners mejorados
+document.querySelector('.prev-button').addEventListener('click', () => flipPage('prev'));
+document.querySelector('.next-button').addEventListener('click', () => flipPage('next'));
+
+// Inicialización
+initBook();
